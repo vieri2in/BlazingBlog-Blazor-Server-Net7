@@ -51,7 +51,7 @@
     </table>
 </div>
 <dialog id="@_categoryFormDiaglogId">
-    <SaveCategoryForm OnSaveCategory="OnSaveCategory"></SaveCategoryForm>
+    <SaveCategoryForm OnSaveCategory="OnSaveCategory" OnCloseForm="CloseCategoryFormAsync"></SaveCategoryForm>
 </dialog>
 <style type="text/css">
     dialog {
@@ -99,12 +99,9 @@
             await AlertAsync(saveCategoryResult.ErrorMessage!);
         }
     }
-    private async Task AlertAsync(string errorMessage)
-    {
+    private async Task AlertAsync(string errorMessage) => 
         await Js.InvokeVoidAsync("window.alert", errorMessage);
-    }
-    private async Task OpenCategoryFormAsync(MouseEventArgs e)
-    {
+
+    private async Task OpenCategoryFormAsync(MouseEventArgs e) => 
         await Js.InvokeVoidAsync("window.openModal", _categoryFormDiaglogId);
-    }
 }
