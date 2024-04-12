@@ -1,0 +1,92 @@
+﻿@page "/login"
+@using BlazingBlog.Models
+@inject NavigationManager NavigationManager
+@inject BlogAuthStateProvider BlogAuthStateProvider
+@if (isProcessing == true)
+{
+    <div class="overlay position-fixed"></div>
+    <div class="loading-wrapper position-fixed d-flex justify-content-center align-items-center">
+        <div class="loading-text fs-1 text-white">Logging-in...</div>
+    </div>
+}
+<style type="text/css">
+    .overlay {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: black;
+        opacity: 0.5;
+        z-index: 2000;
+    }
+
+    .loading-wrapper {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 2001;
+    }
+</style>
+<EditForm Model="_model" OnValidSubmit="LoginAsync">
+    <DataAnnotationsValidator />
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card" style="width: 450px">
+            <div class="card-header">
+                <h2>Login</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <InputText @bind-Value="_model.Username" class="form-control" placeholder="Enter username" />
+                    <ValidationMessage For="()=> _model.Username" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <InputText type="password" @bind-Value="_model.Password" class="form-control" placeholder="Enter password" />
+                    <ValidationMessage For="() => _model.Password" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <p class="text-danger">@_error</p>
+                }
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-success btn-sm">Login</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private LoginModel _model = new();
+    private bool isProcessing = false;
+    private string? _error = null;
+    private async Task LoginAsync()
+    {
+        isProcessing = true;
+        _error = null;
+        try
+        {
+            _error = await BlogAuthStateProvider.LoginAsync(_model);
+            if (string.IsNullOrEmpty(_error))
+            {
+                var loggedInUser = BlogAuthStateProvider.LoggedinUser;
+                if (loggedInUser.IsEmpty)
+                {
+                    _error = "Could not log in, please try again";
+                    isProcessing = false;
+                }
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                isProcessing = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            isProcessing = false;
+        }
+    }
+}

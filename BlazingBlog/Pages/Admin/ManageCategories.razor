@@ -1,0 +1,110 @@
+﻿@page "/admin/manage-categories"
+@inject CategoryService CategoryService
+@inject IJSRuntime Js
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>ManageCategories</h3>
+        <button class="btn btn-primary btn-sm" @onclick="OpenCategoryFormAsync">+ Add new Category</button>
+    </div>
+    <hr />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Slug</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_isLoading)
+            {
+                <tr>
+                    <td colspan="4">
+                        Loading categories...
+                    </td>
+                </tr>
+            }
+            else if (!_isLoading && (_categories == null || !_categories.Any()))
+            {
+                <tr>
+                    <td colspan="4">
+                        No categories found
+                    </td>
+                </tr>
+            }
+            else
+            {
+                int sno = 1;
+                foreach (var category in _categories)
+                {
+                    <tr>
+                        <td>@sno</td>
+                        <td>@category.Id</td>
+                        <td>@category.Name</td>
+                        <td>@category.Slug</td>
+                    </tr>
+                    sno++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+<dialog id="@_categoryFormDiaglogId">
+    <SaveCategoryForm OnSaveCategory="OnSaveCategory"></SaveCategoryForm>
+</dialog>
+<style type="text/css">
+    dialog {
+        padding: 0;
+        border: 2px solid var(--color-purple);
+    }
+</style>
+@code {
+    private const string _categoryFormDiaglogId = "category-form";
+    private bool _isLoading = false;
+    private IEnumerable<Category>? _categories = null;
+    // private async Task OpenCategoryFormAsync() {
+
+    // }
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+    }
+    private async Task LoadCategoriesAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _categories = await CategoryService.GetCategoriesAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+    private async Task CloseCategoryFormAsync()
+    {
+        await Js.InvokeVoidAsync("window.closeModal", _categoryFormDiaglogId);
+    }
+    private async Task OnSaveCategory(MethodResult saveCategoryResult)
+    {
+        if (saveCategoryResult.Status)
+        {
+            await AlertAsync("Category saved successfully");
+            await LoadCategoriesAsync();
+            await CloseCategoryFormAsync();
+        }
+        else
+        {
+            await AlertAsync(saveCategoryResult.ErrorMessage!);
+        }
+    }
+    private async Task AlertAsync(string errorMessage)
+    {
+        await Js.InvokeVoidAsync("window.alert", errorMessage);
+    }
+    private async Task OpenCategoryFormAsync(MouseEventArgs e)
+    {
+        await Js.InvokeVoidAsync("window.openModal", _categoryFormDiaglogId);
+    }
+}
