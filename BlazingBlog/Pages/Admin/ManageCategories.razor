@@ -14,6 +14,7 @@
                 <th>Id</th>
                 <th>Name</th>
                 <th>Slug</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -43,6 +44,9 @@
                         <td>@category.Id</td>
                         <td>@category.Name</td>
                         <td>@category.Slug</td>
+                        <td>
+                            <button type="button" class="btn btn-default btn-sm" @onclick="() => EditCategory(category)">Edit</button>
+                        </td>
                     </tr>
                     sno++;
                 }
@@ -51,7 +55,7 @@
     </table>
 </div>
 <dialog id="@_categoryFormDiaglogId">
-    <SaveCategoryForm OnSaveCategory="OnSaveCategory" OnCloseForm="CloseCategoryFormAsync"></SaveCategoryForm>
+    <SaveCategoryForm CategoryFromParent="_categoryModel" OnSaveCategory="OnSaveCategory" OnCloseForm="CloseCategoryFormAsync"></SaveCategoryForm>
 </dialog>
 <style type="text/css">
     dialog {
@@ -62,10 +66,8 @@
 @code {
     private const string _categoryFormDiaglogId = "category-form";
     private bool _isLoading = false;
+    private Category _categoryModel = new();
     private IEnumerable<Category>? _categories = null;
-    // private async Task OpenCategoryFormAsync() {
-
-    // }
     protected override async Task OnInitializedAsync()
     {
         await LoadCategoriesAsync();
@@ -82,10 +84,6 @@
             _isLoading = false;
         }
     }
-    private async Task CloseCategoryFormAsync()
-    {
-        await Js.InvokeVoidAsync("window.closeModal", _categoryFormDiaglogId);
-    }
     private async Task OnSaveCategory(MethodResult saveCategoryResult)
     {
         if (saveCategoryResult.Status)
@@ -93,6 +91,7 @@
             await AlertAsync("Category saved successfully");
             await LoadCategoriesAsync();
             await CloseCategoryFormAsync();
+            _categoryModel = new();
         }
         else
         {
@@ -101,7 +100,16 @@
     }
     private async Task AlertAsync(string errorMessage) => 
         await Js.InvokeVoidAsync("window.alert", errorMessage);
-
-    private async Task OpenCategoryFormAsync(MouseEventArgs e) => 
+    private async Task OpenCategoryFormAsync() => 
         await Js.InvokeVoidAsync("window.openModal", _categoryFormDiaglogId);
+    private async Task CloseCategoryFormAsync()
+    {
+        _categoryModel = new();
+        await Js.InvokeVoidAsync("window.closeModal", _categoryFormDiaglogId);
+    }
+    private async Task EditCategory(Category category)
+    {
+        _categoryModel = category.Clone();
+        await OpenCategoryFormAsync();
+    }
 }

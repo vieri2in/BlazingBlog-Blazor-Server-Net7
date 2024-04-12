@@ -1,6 +1,6 @@
 ﻿@inject CategoryService CategoryService
 <EditForm Model="_category" OnValidSubmit="SaveCategoryAsync">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <div class="card border-0">
         <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center" style="min-width: 300px">
             <h4>Save Category</h4>
@@ -9,9 +9,9 @@
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label">Name:</label>
-                <InputText @bind-Value="_category.Name" class="form-control" placeholder="Category name" @onblur="OnNameBlur"/>
+                <InputText @bind-Value="_category.Name" class="form-control" placeholder="Category name" @onblur="OnNameBlur" />
                 <ValidationMessage For="() => _category.Name" />
-            </div>  
+            </div>
             <div class="mb-3">
                 <label class="form-label">Slug:</label>
                 <InputText @bind-Value="_category.Slug" class="form-control" placeholder="Slug name" />
@@ -26,16 +26,23 @@
 </EditForm>
 @code {
     [Parameter]
+    public Category CategoryFromParent { get; set; }
+    [Parameter]
     public EventCallback<MethodResult> OnSaveCategory { get; set; }
     [Parameter]
     public EventCallback OnCloseForm { get; set; }
     private Category _category = new();
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _category = CategoryFromParent;
+    }
     private async Task SaveCategoryAsync()
     {
         MethodResult result = await CategoryService.SaveCategoryAsync(_category);
         if (result.Status)
         {
-            _category = new();    
+            _category = new();
         }
         await OnSaveCategory.InvokeAsync(result);
     }
@@ -43,7 +50,7 @@
     {
         if (!string.IsNullOrWhiteSpace(_category.Name))
         {
-            _category.Slug = _category.Name.Slugify();    
+            _category.Slug = _category.Name.Slugify();
         }
     }
     private async Task CloseFormAsync() => await OnCloseForm.InvokeAsync();
