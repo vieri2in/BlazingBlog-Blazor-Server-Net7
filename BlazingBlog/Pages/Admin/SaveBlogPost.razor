@@ -1,0 +1,170 @@
+﻿@page "/admin/manage-blogs/new"
+@page "/admin/manage-blogs/edit/{urlPostId:int?}"
+@inject CategoryService CategoryService
+@inject BlogPostService BlogPostService
+@inject BlogAuthStateProvider BlogAuthStateProvider
+@inject NavigationManager NavigationManager
+@using Blazored.TextEditor
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>Save Blog Post</h3>
+        <NavLink href="/admin/manage-blogs" class="btn btn-primary btn-sm">Back to Manage Blog Posts</NavLink>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            @if (_isLoading)
+            {
+                <div class="d-flex align-items-center">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="_model" OnValidSubmit="SavePostAsync">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <InputText class="form-control" @bind-Value="_model.Title" placeholder="Enter title" />
+                        <ValidationMessage For="()=>_model.Title" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Slug</label>
+                        <InputText class="form-control" @bind-Value="_model.Slug" placeholder="Enter slug" />
+                        <ValidationMessage For="()=>_model.Slug" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <InputSelect @bind-Value="_model.CategoryId" class="form-control">
+                            <option value="">Select Category</option>
+                            @foreach (var category in _categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="()=>_model.CategoryId" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Introduction</label>
+                        <InputTextArea class="form-control" @bind-Value="_model.Introduction" placeholder="Enter introduction" />
+                        <ValidationMessage For="()=>_model.Introduction" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Enter content...">
+                            <ToolbarContent>
+                                <select class="ql-header">
+                                    <option selected=""></option>
+                                    <option value="1"></option>
+                                    <option value="2"></option>
+                                    <option value="3"></option>
+                                    <option value="4"></option>
+                                    <option value="5"></option>
+                                </select>
+                                <span class="ql-formats">
+                                    <button class="ql-bold"></button>
+                                    <button class="ql-italic"></button>
+                                    <button class="ql-underline"></button>
+                                    <button class="ql-strike"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <select class="ql-color"></select>
+                                    <select class="ql-background"></select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-list" value="ordered"></button>
+                                    <button class="ql-list" value="bullet"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-link"></button>
+                                </span>
+                            </ToolbarContent>
+                            <EditorContent>
+                                @((MarkupString)_model.Content)
+                            </EditorContent>
+                        </BlazoredTextEditor>
+                        <ValidationMessage For="()=>_model.Content" />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <InputCheckbox id="blog-publish-check" @bind-Value="_model.IsPublished" class="form-check-input" role="switch" />
+                            <label class="form-check-label" for="blog-publish-check">Published?</label>
+                        </div>
+                    </div>
+                    <hr />
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <p class="text-danger">@_errorMessage</p>
+                    }
+                    <div class="mb-3 d-flex justify-content-between">
+                        <NavLink href="/admin/manage-blogs" class="btn btn-danger">X Cancel</NavLink>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                    <hr />
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public int? UrlPostId { get; set; }
+    private int postId => UrlPostId ?? 0;
+    private bool _isLoading = false;
+    private string? _errorMessage = null;
+    private BlogPostSaveModel _model = new();
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    private BlazoredTextEditor? QuillHtml;
+    protected override async Task OnInitializedAsync()
+    {
+        var categoriesList = await CategoryService.GetCategoriesAsync();
+        if (categoriesList.Any())
+        {
+            _categories = categoriesList;
+            StateHasChanged();
+        }
+        if(postId != 0)
+        {
+            var dbModel = await BlogPostService.GetBlogPostAsync(postId);
+            if (dbModel is null)
+            {
+                _errorMessage = "Invalid url";
+            }else
+            {
+                _model = dbModel;
+            }
+        }
+    }
+    private async Task SavePostAsync()
+    {
+        _model.Content = await QuillHtml.GetHTML();
+        if (string.IsNullOrWhiteSpace(_model.Content))
+        {
+            _errorMessage = "Content is required";
+            return;
+        }
+        _isLoading = true;
+        try
+        {
+            var result = await BlogPostService.SaveBlogPostAsync(_model, BlogAuthStateProvider.LoggedinUser.UserId);
+            if (result.Status)
+            {
+                NavigationManager.NavigateTo("/admin/manage-blogs");
+                return;
+            }
+            else
+            {
+                _errorMessage = result.ErrorMessage ?? "Error while saving blog post";
+                _isLoading = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+            _isLoading = false;
+        }
+    }
+}

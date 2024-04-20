@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlazingBlog.Data.Entities
 {
@@ -7,10 +8,9 @@ namespace BlazingBlog.Data.Entities
         [Key]
         public int Id { get; set; }
         [Required,MaxLength(120)]
-        public string Titl { get; set; }
+        public string Title { get; set; }
         [Required, MaxLength(150)]
         public string Slug { get; set; }
-
         public int CategoryId { get; set; }
         public int UserId { get; set; }
         [Required, MaxLength(250)]
@@ -23,5 +23,7 @@ namespace BlazingBlog.Data.Entities
         public DateTime? ModifiedOn { get; set; }
         public virtual Category Category { get; set; }
         public virtual User User { get; set; }
+        [NotMapped]
+        public string CategoryName  => Category.Name;
     }
 }

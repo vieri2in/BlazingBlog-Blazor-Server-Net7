@@ -1,11 +1,72 @@
 ﻿@page "/"
-
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-@code{
-
+@page "/c/{categorySlug}/posts"
+@inject BlogPostService PostService
+@inject CategoryService CategoryService
+<PageTitle>Lastest Posts | BlazingBlog</PageTitle>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+            <h1 class="fs-3">@heading</h1>
+            <hr />
+            @if (!_posts.Any())
+            {
+                <div class="d-flex justify-content-center flex-column align-items-center" style="min-height: 250px">
+                    <h3>No blog post found</h3>
+                    <AuthorizeView>
+                        <Authorized>
+                            <NavLink href="/admin/manage-blogs/new">Click here to create a new blog post</NavLink>
+                        </Authorized>
+                        <NotAuthorized>
+                            <p>Please check back later</p>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            }
+            else
+            {
+                <BlogList Posts="_posts" />
+            }
+        </div>
+        <div class="col-sm-3">
+            <h3>Categories</h3>
+            <hr />
+            <ul class="list-unstyled">
+                @foreach (var category in _categories)
+                {
+                    var categoryPostsLink = $"/c/{category.Slug}/posts";
+                    <li class="mb-1 border-bottom p-1">
+                        <NavLink href="@categoryPostsLink" class="text-decoration-none fs-6 py-2 ">@category.Name</NavLink>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public string? CategorySlug { get; set; }
+    private string heading = "Latest Posts";
+    private IEnumerable<BlogPost> _posts = Enumerable.Empty<BlogPost>();
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetDataAsync();
+    }
+    private async Task SetDataAsync()
+    {
+        _posts = await PostService.GetBlogPostsAsync(publishedOnly: true, categorySlug: CategorySlug);
+        if (!_categories.Any())
+        {
+            _categories = await CategoryService.GetCategoriesAsync();
+        }
+        if (!string.IsNullOrWhiteSpace(CategorySlug))
+        {
+            var categoryName = _categories.FirstOrDefault(c => c.Slug == CategorySlug)?.Name;
+            heading = $"Latest {categoryName} Posts";
+        }
+        else
+        {
+            heading = "Latest Posts";
+        }
+    }
 }
