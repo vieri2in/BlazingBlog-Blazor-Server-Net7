@@ -28,7 +28,8 @@
             }
         </div>
         <div class="col-sm-3">
-            <h3>Categories</h3>
+            <CategoriesBox/>
+           @*  <h3>Categories</h3>
             <hr />
             <ul class="list-unstyled">
                 @foreach (var category in _categories)
@@ -38,7 +39,7 @@
                         <NavLink href="@categoryPostsLink" class="text-decoration-none fs-6 py-2 ">@category.Name</NavLink>
                     </li>
                 }
-            </ul>
+            </ul> *@
         </div>
     </div>
 </div>
@@ -47,7 +48,6 @@
     public string? CategorySlug { get; set; }
     private string heading = "Latest Posts";
     private IEnumerable<BlogPost> _posts = Enumerable.Empty<BlogPost>();
-    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     protected override async Task OnParametersSetAsync()
     {
         await SetDataAsync();
@@ -55,14 +55,14 @@
     private async Task SetDataAsync()
     {
         _posts = await PostService.GetBlogPostsAsync(publishedOnly: true, categorySlug: CategorySlug);
-        if (!_categories.Any())
-        {
-            _categories = await CategoryService.GetCategoriesAsync();
-        }
+
         if (!string.IsNullOrWhiteSpace(CategorySlug))
         {
-            var categoryName = _categories.FirstOrDefault(c => c.Slug == CategorySlug)?.Name;
-            heading = $"Latest {categoryName} Posts";
+            var categoryName = await CategoryService.GetCategoryNameBySlugAsync(CategorySlug);
+            if (categoryName is not null)
+            {             
+                heading = $"Latest {categoryName} Posts";
+            }
         }
         else
         {

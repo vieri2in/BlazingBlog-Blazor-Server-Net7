@@ -11,6 +11,8 @@ namespace BlazingBlog.Services
         }
         public async Task<IEnumerable<Category>> GetCategoriesAsync() =>
             await _blogContext.Categories.AsNoTracking().ToListAsync();
+        public async Task<string?> GetCategoryNameBySlugAsync(string categorySlug) =>
+           (await GetCategoriesAsync()).Where(c => c.Slug == categorySlug).Select(c => c.Name).FirstOrDefault();
         public async Task<MethodResult> SaveCategoryAsync(Category model)
         {
             try

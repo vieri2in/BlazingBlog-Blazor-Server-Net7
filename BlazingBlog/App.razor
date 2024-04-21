@@ -1,7 +1,15 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <Authorizing>
+                    <p>Checking auth state, please wait...</p>
+                </Authorizing>
+                <NotAuthorized>
+                    <p class="text-center text-danger">You are not authorized to view this page</p>
+                    <NavLink href="/">Go to the home page</NavLink>
+                </NotAuthorized>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>

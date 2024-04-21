@@ -32,6 +32,11 @@ namespace BlazingBlog.Services
             .Include(post => post.Category)
             .Select(BlogPostSaveModel.Selector)
             .FirstOrDefaultAsync(post => post.Id == postId);
+        public async Task<BlogPost?> GetBlogPostBySlugAsync(string postSlug) =>
+              await _blogContext.BlogPosts
+            .AsNoTracking()
+            .Include(post => post.Category)
+            .FirstOrDefaultAsync(post => post.IsPublished && post.Slug == postSlug);
         public async Task<MethodResult> SaveBlogPostAsync(BlogPostSaveModel post, int userId)
         {
             if (post.Id == 0)
