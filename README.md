@@ -1,1 +1,5 @@
 ![Screenshot (6)](https://github.com/vieri2in/BlazingBlog-Blazor-Server-Net7/assets/97074757/f3443901-e2aa-405b-a75f-9b6867d4b355)
+![Screenshot (9)](https://github.com/vieri2in/BlazingBlog-Blazor-Server-Net7/assets/97074757/f26bc9ce-169f-41b3-abbc-7b12c6105dea)
+![Screenshot (10)](https://github.com/vieri2in/BlazingBlog-Blazor-Server-Net7/assets/97074757/2a8bfcb4-7467-42f0-bade-6fdcffd854e5)
+![Screenshot (11)](https://github.com/vieri2in/BlazingBlog-Blazor-Server-Net7/assets/97074757/e1701cd2-ab23-48d5-9a35-e8ead2f8eaeb)
+![Screenshot (12)](https://github.com/vieri2in/BlazingBlog-Blazor-Server-Net7/assets/97074757/4fdf3cd3-722c-429a-b5fb-71de03408db0)
